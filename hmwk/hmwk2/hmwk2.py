@@ -1,7 +1,58 @@
+import random
 import numpy as np
 import matplotlib.pyplot as plt
 
 
+# ref
+# step function
+# f(x) = 1 if x >= 0
+# f(x) = 0 if x < 0
+
+def step_function(x):
+    return np.array(x > 0, dtype=np.int)
+
+
+# working with numpy arrays example
+
+# creating a vector1
+# vector as row
+# creating a 1-D list (Horizontal)
+vector1 = np.array([1, 2, 3, 4, 5])
+  
+# creating a vector 2
+# vector as column
+# creating a 1-D list (Vertical)
+vector2 = np.array([[10], 
+                    [20],
+                    [30]])
+
+
+def neg_one_or_one():
+    return random.choice([-1, 1])
+
+# begin weights
+
+w_0 = random.choice([-1/4, 1/4])
+w_1 = neg_one_or_one()
+w_2 = neg_one_or_one()
+
+x_1 = np.array([[neg_one_or_one()],
+                [neg_one_or_one()]])
+
+x_2 = np.array([[neg_one_or_one()],
+                [neg_one_or_one()]])
+
+# x_1_n = np.array([[neg_one_or_one()],
+#                 [neg_one_or_one()]])
+x_1_n = np.array([neg_one_or_one(), neg_one_or_one()])
+
+n = 99
+for i in range(n):
+    x_i = np.array([neg_one_or_one(), neg_one_or_one()])
+    x_1_n = np.vstack((x_1_n, x_i))
+
+print(x_1_n)
+exit()
 
 # from lecture notes
 
