@@ -9,7 +9,13 @@ import matplotlib.pyplot as plt
 # f(x) = 0 if x < 0
 
 def step_function(x):
-    return np.array(x > 0, dtype=np.int)
+    """1 if x >= 0, 0 if x < 0"""
+    # is numpy really necessary?
+    return np.array(x >= 0, dtype=int)
+
+print(step_function(3))
+print(step_function(-1))
+print(step_function(0))
 
 
 # working with numpy arrays example
