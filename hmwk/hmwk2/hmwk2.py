@@ -33,63 +33,6 @@ def plot_data(s_0, s_1, w_0, w_1, w_2, title):
     # render plot
     plt.show()
 
-def main():
-
-    # section a through g
-    # weights
-    w_0, w_1, w_2 = random.uniform(-1/4, 1/4), random.uniform(-1, 1), random.uniform(-1, 1)
-
-    # S: x_1 ... x_n
-    S = np.array([random.uniform(-1, 1), random.uniform(-1, 1)])
-    n = 99
-    for i in range(n):
-        x_i = np.array([random.uniform(-1, 1), random.uniform(-1, 1)])
-        S = np.vstack((S, x_i))
-    # S should now be a 100x2 matrix
-
-    # determine s_1 and s_0 where
-    # s_0 subset of S where x=[x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T < 0
-    # s_1 subset of S where x=[x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
-
-    input_vector = np.array([1, S[0][0], S[0][1]])
-    weight_vector = np.array([w_0, w_1, w_2])
-
-    s_0 = np.empty((0,2), float)
-    s_1 = np.empty((0,2), float)
-
-    for i in range(100):
-        input_vector = np.array([1, S[i][0], S[i][1]])
-        weight_vector = np.array([w_0, w_1, w_2])
-        if np.sum(input_vector * weight_vector) >= 0:
-            s_1 = np.vstack((s_1, S[i]))
-        else:
-            s_0 = np.vstack((s_0, S[i]))
-
-    # s_0 should now be the collection of all x[x_1, x_2] an element of S where [1 x_1 x_2][w_0 w_1 w_2]^T < 0
-    # s_1 should now be the collection of all x[x_1, x_2] an element of S where [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
-
-    # section g
-    plot_data(s_0, s_1, w_0, w_1, w_2, "Optimal weights on Random Classification Data with 2 classes")
-
-    eta = 1
-    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
-
-    # section j
-    eta = 10
-    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
-
-    # section k
-    eta = 0.1
-    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
-
-    # section m TODO in the report
-
-    # section n
-    eta = 1000
-    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
-    eta = 100
-    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
-
 
 def run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta):
     """ Perceptron training algorithm in plain english
@@ -168,6 +111,64 @@ def train_perceptron(S, s_1, weight_vector, eta):
             weight_vector[2] += eta * input_vector[2]
             misclassifications += 1
     return (weight_vector, misclassifications)
+
+
+def main():
+
+    # section a through g
+    # weights
+    w_0, w_1, w_2 = random.uniform(-1/4, 1/4), random.uniform(-1, 1), random.uniform(-1, 1)
+
+    # S: x_1 ... x_n
+    S = np.array([random.uniform(-1, 1), random.uniform(-1, 1)])
+    n = 99
+    for i in range(n):
+        x_i = np.array([random.uniform(-1, 1), random.uniform(-1, 1)])
+        S = np.vstack((S, x_i))
+    # S should now be a 100x2 matrix
+
+    # determine s_1 and s_0 where
+    # s_0 subset of S where x=[x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T < 0
+    # s_1 subset of S where x=[x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
+
+    input_vector = np.array([1, S[0][0], S[0][1]])
+    weight_vector = np.array([w_0, w_1, w_2])
+
+    s_0 = np.empty((0,2), float)
+    s_1 = np.empty((0,2), float)
+
+    for i in range(100):
+        input_vector = np.array([1, S[i][0], S[i][1]])
+        weight_vector = np.array([w_0, w_1, w_2])
+        if np.sum(input_vector * weight_vector) >= 0:
+            s_1 = np.vstack((s_1, S[i]))
+        else:
+            s_0 = np.vstack((s_0, S[i]))
+
+    # s_0 should now be the collection of all x[x_1, x_2] an element of S where [1 x_1 x_2][w_0 w_1 w_2]^T < 0
+    # s_1 should now be the collection of all x[x_1, x_2] an element of S where [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
+
+    # section g
+    plot_data(s_0, s_1, w_0, w_1, w_2, "Optimal weights on Random Classification Data with 2 classes")
+
+    eta = 1
+    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
+
+    # section j
+    eta = 10
+    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
+
+    # section k
+    eta = 0.1
+    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
+
+    # section m TODO in the report
+
+    # section n
+    eta = 1000
+    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
+    eta = 100
+    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
 
 
 if __name__ == "__main__":
