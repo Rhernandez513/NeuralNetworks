@@ -1,66 +1,69 @@
-import random
+from tkinter import W
 import numpy as np
 import matplotlib.pyplot as plt
+from random import random, uniform
 
-
-# ref
-# step function
-# f(x) = 1 if x >= 0
-# f(x) = 0 if x < 0
 
 def step_function(x):
-    """1 if x >= 0, 0 if x < 0"""
-    # is numpy really necessary?
+    """ f(x) = 1 if x >= 0
+        f(x) = 0 if x < 0
+    """
+    # TODO is numpy really necessary?
     return np.array(x >= 0, dtype=int)
 
-print(step_function(3))
-print(step_function(-1))
-print(step_function(0))
 
-
-# working with numpy arrays example
-
-# creating a vector1
-# vector as row
-# creating a 1-D list (Horizontal)
-vector1 = np.array([1, 2, 3, 4, 5])
-  
-# creating a vector 2
-# vector as column
-# creating a 1-D list (Vertical)
-vector2 = np.array([[10], 
-                    [20],
-                    [30]])
-
-
-def neg_one_or_one():
-    return random.choice([-1, 1])
+def neg_one_to_one():
+    return uniform(-1, 1)
 
 # begin weights
+w_0 = uniform(-1/4, 1/4)
+w_1 = neg_one_to_one()
+w_2 = neg_one_to_one()
 
-w_0 = random.choice([-1/4, 1/4])
-w_1 = neg_one_or_one()
-w_2 = neg_one_or_one()
-
-x_1 = np.array([[neg_one_or_one()],
-                [neg_one_or_one()]])
-
-x_2 = np.array([[neg_one_or_one()],
-                [neg_one_or_one()]])
-
-# x_1_n = np.array([[neg_one_or_one()],
-#                 [neg_one_or_one()]])
-x_1_n = np.array([neg_one_or_one(), neg_one_or_one()])
-
+# x_1 ... x_n
+x_1_n = np.array([neg_one_to_one(), neg_one_to_one()])
 n = 99
 for i in range(n):
-    x_i = np.array([neg_one_or_one(), neg_one_or_one()])
+    x_i = np.array([neg_one_to_one(), neg_one_to_one()])
     x_1_n = np.vstack((x_1_n, x_i))
 
-print(x_1_n)
-exit()
+# x_1_n should now be a 100x2 matrix
 
-# from lecture notes
+# determine s_1 and s_0 where
+# s_1 subset of S where x [x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
+# s_0 subset of S where x [x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T < 0
+
+a = np.array([1, x_1_n[0][0], x_1_n[0][1]])
+b = np.array([w_0, w_1, w_2])
+
+s_0 = np.empty((0,2), float)
+s_1 = np.empty((0,2), float)
+
+for i in range(100):
+    a = np.array([1, x_1_n[i][0], x_1_n[i][1]])
+    b = np.array([w_0, w_1, w_2])
+    if np.sum(a * b) >= 0:
+        s_1 = np.vstack((s_1, x_1_n[i]))
+    else:
+        s_0 = np.vstack((s_0, x_1_n[i]))
+
+# print(x_1_n[0][0])
+# print(s_0)
+
+# s_0 should now be the collection of all x[x_1, x_2] an element of S where [1 x_1 x_2][w_0 w_1 w_2]^T < 0
+# s_1 should now be the collection of all x[x_1, x_2] an element of S where [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
+
+
+# Plotting
+fig = plt.figure(figsize=(10,8))
+# plt.plot(x_1_n[:, 0][y == 0], X[:, 1][y == 0], 'r^')
+# plt.plot(x_1_n[:, 0][y == 1], X[:, 1][y == 1], 'bs')
+plt.xlabel("feature 1")
+plt.ylabel("feature 2")
+plt.title('Random Classification Data with 2 classes')
+plt.plot(s_0[:, 0], s_0[:, 1], 'r^')
+plt.plot(s_1[:, 0], s_1[:, 1], 'bs')
+plt.show()
 
 # We can use the Perceptron Training Algorithm (PTA) that finds the weight vector for us.  Of course, it is a special case of supervised learning
 #     - Supposing n training samples x1 , … , xn ∈ ℝ1+d are given.  Again assume the first component of these vectors are assumed to be equal to 1 to provide for the bias.
@@ -97,11 +100,5 @@ def perceptron_training_algorithm(perceptron, data):
 
 def organize_data():
     pass
-
-def main():
-    print("Hello World")
-
-if __name__ == "__main__":
-    main()
 
 # EOF
