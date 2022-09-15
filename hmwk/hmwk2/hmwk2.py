@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import matplotlib.pyplot as plt
-from random import random, uniform
+import random
 
 
 def step_function(x):
@@ -11,54 +13,11 @@ def step_function(x):
     return np.array(x >= 0, dtype=int)
 
 
-def neg_one_to_one():
-    return uniform(-1, 1)
-
-def main():
-
-    # begin weights
-    w_0 = uniform(-1/4, 1/4)
-    w_1 = neg_one_to_one()
-    w_2 = neg_one_to_one()
-
-    # x_1 ... x_n
-    x_1_n = np.array([neg_one_to_one(), neg_one_to_one()])
-    n = 99
-    for i in range(n):
-        x_i = np.array([neg_one_to_one(), neg_one_to_one()])
-        x_1_n = np.vstack((x_1_n, x_i))
-
-    # x_1_n should now be a 100x2 matrix
-
-    # determine s_1 and s_0 where
-    # s_0 subset of S where x [x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T < 0
-    # s_1 subset of S where x [x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
-
-    a = np.array([1, x_1_n[0][0], x_1_n[0][1]])
-    b = np.array([w_0, w_1, w_2])
-
-    s_0 = np.empty((0,2), float)
-    s_1 = np.empty((0,2), float)
-
-    for i in range(100):
-        a = np.array([1, x_1_n[i][0], x_1_n[i][1]])
-        b = np.array([w_0, w_1, w_2])
-        if np.sum(a * b) >= 0:
-            s_1 = np.vstack((s_1, x_1_n[i]))
-        else:
-            s_0 = np.vstack((s_0, x_1_n[i]))
-
-    # print(x_1_n[0][0])
-    # print(s_0)
-
-    # s_0 should now be the collection of all x[x_1, x_2] an element of S where [1 x_1 x_2][w_0 w_1 w_2]^T < 0
-    # s_1 should now be the collection of all x[x_1, x_2] an element of S where [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
-
-
-    # Plotting
+def plot_data(s_0, s_1, w_0, w_1, w_2):
+    # Plotting training data
     fig = plt.figure(figsize=(10,8))
 
-    # datapoints
+    # training datapoints
     plt.xlabel("feature 1")
     plt.ylabel("feature 2")
     plt.title('Random Classification Data with 2 classes')
@@ -67,10 +26,55 @@ def main():
 
     # decision boundary
     x1 = np.arange(-1,1,0.01)
-    plt.plot(x1, (-w_0-w_1*x1)/w_2, 'k-')
+    # here we plot the decision boundary the perceptron will output
+    # after training
+    plt.plot(x1, (-w_0 - w_1 * x1)/w_2, 'k-')
 
     # render plot
     plt.show()
+
+def main():
+
+    # weights
+    w_0, w_1, w_2 = random.uniform(-1/4, 1/4), random.uniform(-1, 1), random.uniform(-1, 1)
+
+    # S: x_1 ... x_n
+    S = np.array([random.uniform(-1, 1), random.uniform(-1, 1)])
+    n = 99
+    for i in range(n):
+        x_i = np.array([random.uniform(-1, 1), random.uniform(-1, 1)])
+        S = np.vstack((S, x_i))
+    # S should now be a 100x2 matrix
+
+    # determine s_1 and s_0 where
+    # s_0 subset of S where x=[x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T < 0
+    # s_1 subset of S where x=[x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
+
+    input_vector = np.array([1, S[0][0], S[0][1]])
+    weight_vector = np.array([w_0, w_1, w_2])
+
+    s_0 = np.empty((0,2), float)
+    s_1 = np.empty((0,2), float)
+
+    for i in range(100):
+        input_vector = np.array([1, S[i][0], S[i][1]])
+        weight_vector = np.array([w_0, w_1, w_2])
+        if np.sum(input_vector * weight_vector) >= 0:
+            s_1 = np.vstack((s_1, S[i]))
+        else:
+            s_0 = np.vstack((s_0, S[i]))
+
+    # s_0 should now be the collection of all x[x_1, x_2] an element of S where [1 x_1 x_2][w_0 w_1 w_2]^T < 0
+    # s_1 should now be the collection of all x[x_1, x_2] an element of S where [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
+
+    # section g
+    plot_data(s_0, s_1, w_0, w_1, w_2)
+
+    # we will use s_0 and s_1 to train the perceptron
+
+    eta = 1
+    misclassifications = 0
+    epochNumber = 0
 
 
 # Perceptron training algorithm in plain english
@@ -80,6 +84,45 @@ def main():
 # 4. Update the weights: w = w + (d - y) * x
 # 5. Repeat steps 2-4 until all training examples are classified correctly
 
+    w_0, w_1, w_2 = random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)
+
+    for i in range(len(S)):
+
+        input_vector = np.array([1, S[i][0], S[i][1]])
+        weight_vector = np.array([w_0, w_1, w_2])
+
+        # y = u(Omega T x_i)
+        y = np.sum(input_vector * weight_vector)
+        # Perceptron output
+        y = 1 if y >= 0 else 0
+
+        # d_i is the actual classification of the data point 
+        # we must compare the classification computer by the Perceptron
+        # to the actual classification
+        d_i = 1 if np.array([S[i][0], S[i][1]]) in s_1 else 0
+
+        # we'll write the "longer" algorithm here first, then upgrade to the shorthand after
+        if y == 1 and d_i == 0:
+            w_0 -= eta * input_vector[0]
+            w_1 -= eta * input_vector[1]
+            w_2 -= eta * input_vector[2]
+            misclassifications += 1
+            i = 0
+            continue
+            # maybe just set i = 0 and continue the loop to perform the actual training
+        elif y == 0 and d_i == 1:
+            w_0 += eta * input_vector[0]
+            w_1 += eta * input_vector[1]
+            w_2 += eta * input_vector[2]
+            misclassifications += 1
+            i = 0
+            continue
+            # maybe just set i = 0 and continue the loop to perform the actual training
+
+    print("Number of misclassifications: ", misclassifications)
+    exit()
+
+    # TODO Render the decision boundary of the perceptron after training
 
 
 # We can use the Perceptron Training Algorithm (PTA) that finds the weight vector for us.  Of course, it is a special case of supervised learning
