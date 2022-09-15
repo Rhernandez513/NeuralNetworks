@@ -35,6 +35,7 @@ def plot_data(s_0, s_1, w_0, w_1, w_2, title):
 
 def main():
 
+    # section a through g
     # weights
     w_0, w_1, w_2 = random.uniform(-1/4, 1/4), random.uniform(-1, 1), random.uniform(-1, 1)
 
@@ -70,57 +71,70 @@ def main():
     # section g
     plot_data(s_0, s_1, w_0, w_1, w_2, "Optimal weights on Random Classification Data with 2 classes")
 
-    # we will use s_0 and s_1 to train the perceptron
-
     eta = 1
-    misclassifications = 0
-    epochNumber = 0
+    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
+
+    # section j
+    eta = 10
+    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
+
+    # section k
+    eta = 0.1
+    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
+
+    # section m TODO in the report
+
+    # section n
+    eta = 1000
+    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
+    eta = 100
+    run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta)
 
 
-# Perceptron training algorithm in plain english
-    # 1. Initialize weights to random values
-    # 2. For each training example (x, d)
-    # 3. Compute the output value of the perceptron: y = f(w^T * x)
-    # 4. Update the weights: w = w + (d - y) * x
-    # 5. Repeat steps 2-4 until all training examples are classified correctly
-
-    weight_vector = np.array([random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)])
+def run_until_convergence(S, s_0, s_1, w_0, w_1, w_2, eta):
+    """ Perceptron training algorithm in plain english
+            1. Initialize weights to random values
+            2. For each training example (x, d)
+            3. Compute the output value of the perceptron: y = f(w^T * x)
+            4. Update the weights: w = w + (d - y) * x
+            5. Repeat steps 2-4 until all training examples are classified correctly
+    """
+    learned_weight_vector = np.array([random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)])
 
     # pseudo do-while loop
+    misclassifications, epochNumber = 0, 0
     epoch_tracker_for_graph = []
     misclassification_tracker_for_graph = []
-    (weight_vector, misclassifications) = train_perceptron(S, s_1, weight_vector, eta)
+    (learned_weight_vector, misclassifications) = train_perceptron(S, s_1, learned_weight_vector, eta)
     print("Epoch: ", epochNumber, end=" ")
     print("Misclassifications: ", misclassifications)
     epoch_tracker_for_graph.append(epochNumber)
     misclassification_tracker_for_graph.append(misclassifications)
     while misclassifications > 0:
         epochNumber += 1
-        (weight_vector, misclassifications) = train_perceptron(S, s_1, weight_vector, eta)
+        (learned_weight_vector, misclassifications) = train_perceptron(S, s_1, learned_weight_vector, eta)
         print("Epoch: ", epochNumber, end=" ")
         print("Eta: ", eta, end=" ")
         print("Misclassifications: ", misclassifications)
         epoch_tracker_for_graph.append(epochNumber)
         misclassification_tracker_for_graph.append(misclassifications)
     print("Converged after ", epochNumber, " epochs")
-    print("Final Perceptron weights: ", weight_vector)
+    print("Final Perceptron weights: ", learned_weight_vector)
 
     # Compare to original "optimal" weights
     print("Original 'optimal' weights: ", np.array([w_0, w_1, w_2]))
 
     # Delta between original and final weights
-    print("Delta between original and final weights: ", np.array([w_0, w_1, w_2]) - weight_vector)
+    print("Delta between original and final weights: ", np.array([w_0, w_1, w_2]) - learned_weight_vector)
 
-    plot_data(s_0, s_1, weight_vector[0], weight_vector[1], weight_vector[2], "Perceptron trained weights on Random Classification Data with 2 classes")
+    plot_data(s_0, s_1, learned_weight_vector[0], learned_weight_vector[1], learned_weight_vector[2], "Perceptron trained decision boundary on Random Classification Data, eta=" + str(eta)) 
 
     # Section (i)
     plt.plot(epoch_tracker_for_graph, misclassification_tracker_for_graph, 'k-')
     plt.title("Epoch vs Misclassifications, Eta = " + str(eta))
     plt.show()
 
-
-
-def train_perceptron(S, s_1, weight_vector,eta):
+def train_perceptron(S, s_1, weight_vector, eta):
     misclassifications = 0
     for i in range(len(S)):
 
