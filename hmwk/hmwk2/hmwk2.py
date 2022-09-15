@@ -86,10 +86,29 @@ def main():
 
     w_0, w_1, w_2 = random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)
 
+    weight_vector = np.array([w_0, w_1, w_2])
+
+    # pseudo do-while loop
+    (weight_vector, misclassifications) = train_perceptron(S, s_1, weight_vector, eta)
+    print("Epoch: ", epochNumber, end=" ")
+    print("Misclassifications: ", misclassifications)
+    while misclassifications > 0:
+        epochNumber += 1
+        (weight_vector, misclassifications) = train_perceptron(S, s_1, weight_vector, eta)
+        print("Epoch: ", epochNumber, end=" ")
+        print("Misclassifications: ", misclassifications)
+    print("Converged after ", epochNumber, " epochs")
+    print("Final weights: ", weight_vector)
+
+
+
+    # TODO Render the decision boundary of the perceptron after training
+
+def train_perceptron(S, s_1, weight_vector,eta):
+    misclassifications = 0
     for i in range(len(S)):
 
         input_vector = np.array([1, S[i][0], S[i][1]])
-        weight_vector = np.array([w_0, w_1, w_2])
 
         # y = u(Omega T x_i)
         y = np.sum(input_vector * weight_vector)
@@ -103,27 +122,16 @@ def main():
 
         # we'll write the "longer" algorithm here first, then upgrade to the shorthand after
         if y == 1 and d_i == 0:
-            w_0 -= eta * input_vector[0]
-            w_1 -= eta * input_vector[1]
-            w_2 -= eta * input_vector[2]
+            weight_vector[0] -= eta * input_vector[0]
+            weight_vector[1] -= eta * input_vector[1]
+            weight_vector[2] -= eta * input_vector[2]
             misclassifications += 1
-            i = 0
-            continue
-            # maybe just set i = 0 and continue the loop to perform the actual training
         elif y == 0 and d_i == 1:
-            w_0 += eta * input_vector[0]
-            w_1 += eta * input_vector[1]
-            w_2 += eta * input_vector[2]
+            weight_vector[0] += eta * input_vector[0]
+            weight_vector[1] += eta * input_vector[1]
+            weight_vector[2] += eta * input_vector[2]
             misclassifications += 1
-            i = 0
-            continue
-            # maybe just set i = 0 and continue the loop to perform the actual training
-
-    print("Number of misclassifications: ", misclassifications)
-    exit()
-
-    # TODO Render the decision boundary of the perceptron after training
-
+    return (weight_vector, misclassifications)
 
 # We can use the Perceptron Training Algorithm (PTA) that finds the weight vector for us.  Of course, it is a special case of supervised learning
 #     - Supposing n training samples x1 , … , xn ∈ ℝ1+d are given.  Again assume the first component of these vectors are assumed to be equal to 1 to provide for the bias.
