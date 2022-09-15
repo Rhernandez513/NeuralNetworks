@@ -13,14 +13,14 @@ def step_function(x):
     return np.array(x >= 0, dtype=int)
 
 
-def plot_data(s_0, s_1, w_0, w_1, w_2):
+def plot_data(s_0, s_1, w_0, w_1, w_2, title):
     # Plotting training data
     fig = plt.figure(figsize=(10,8))
 
     # training datapoints
     plt.xlabel("feature 1")
     plt.ylabel("feature 2")
-    plt.title('Random Classification Data with 2 classes')
+    plt.title(title)
     plt.plot(s_0[:, 0], s_0[:, 1], 'r^')
     plt.plot(s_1[:, 0], s_1[:, 1], 'bs')
 
@@ -68,7 +68,7 @@ def main():
     # s_1 should now be the collection of all x[x_1, x_2] an element of S where [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
 
     # section g
-    plot_data(s_0, s_1, w_0, w_1, w_2)
+    plot_data(s_0, s_1, w_0, w_1, w_2, "Optimal weights on Random Classification Data with 2 classes")
 
     # we will use s_0 and s_1 to train the perceptron
 
@@ -78,15 +78,13 @@ def main():
 
 
 # Perceptron training algorithm in plain english
-# 1. Initialize weights to random values
-# 2. For each training example (x, d)
-# 3. Compute the output value of the perceptron: y = f(w^T * x)
-# 4. Update the weights: w = w + (d - y) * x
-# 5. Repeat steps 2-4 until all training examples are classified correctly
+    # 1. Initialize weights to random values
+    # 2. For each training example (x, d)
+    # 3. Compute the output value of the perceptron: y = f(w^T * x)
+    # 4. Update the weights: w = w + (d - y) * x
+    # 5. Repeat steps 2-4 until all training examples are classified correctly
 
-    w_0, w_1, w_2 = random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)
-
-    weight_vector = np.array([w_0, w_1, w_2])
+    weight_vector = np.array([random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)])
 
     # pseudo do-while loop
     (weight_vector, misclassifications) = train_perceptron(S, s_1, weight_vector, eta)
@@ -98,9 +96,15 @@ def main():
         print("Epoch: ", epochNumber, end=" ")
         print("Misclassifications: ", misclassifications)
     print("Converged after ", epochNumber, " epochs")
-    print("Final weights: ", weight_vector)
+    print("Final Perceptron weights: ", weight_vector)
 
+    # Compare to original "optimal" weights
+    print("Original 'optimal' weights: ", np.array([w_0, w_1, w_2]))
 
+    # Delta between original and final weights
+    print("Delta between original and final weights: ", np.array([w_0, w_1, w_2]) - weight_vector)
+
+    plot_data(s_0, s_1, weight_vector[0], weight_vector[1], weight_vector[2], "Perceptron trained weights on Random Classification Data with 2 classes")
 
     # TODO Render the decision boundary of the perceptron after training
 
