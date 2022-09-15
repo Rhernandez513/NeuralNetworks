@@ -89,9 +89,6 @@ def main():
     # pseudo do-while loop
     epoch_tracker_for_graph = []
     misclassification_tracker_for_graph = []
-
-
-
     (weight_vector, misclassifications) = train_perceptron(S, s_1, weight_vector, eta)
     print("Epoch: ", epochNumber, end=" ")
     print("Misclassifications: ", misclassifications)
@@ -118,7 +115,7 @@ def main():
 
     # Section (i)
     plt.plot(epoch_tracker_for_graph, misclassification_tracker_for_graph, 'k-')
-    plt.title("Misclassifications per Epoch with Eta = " + str(eta))
+    plt.title("Epoch vs Misclassifications, Eta = " + str(eta))
     plt.show()
 
 
