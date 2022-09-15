@@ -87,14 +87,24 @@ def main():
     weight_vector = np.array([random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)])
 
     # pseudo do-while loop
+    epoch_tracker_for_graph = []
+    misclassification_tracker_for_graph = []
+
+
+
     (weight_vector, misclassifications) = train_perceptron(S, s_1, weight_vector, eta)
     print("Epoch: ", epochNumber, end=" ")
     print("Misclassifications: ", misclassifications)
+    epoch_tracker_for_graph.append(epochNumber)
+    misclassification_tracker_for_graph.append(misclassifications)
     while misclassifications > 0:
         epochNumber += 1
         (weight_vector, misclassifications) = train_perceptron(S, s_1, weight_vector, eta)
         print("Epoch: ", epochNumber, end=" ")
+        print("Eta: ", eta, end=" ")
         print("Misclassifications: ", misclassifications)
+        epoch_tracker_for_graph.append(epochNumber)
+        misclassification_tracker_for_graph.append(misclassifications)
     print("Converged after ", epochNumber, " epochs")
     print("Final Perceptron weights: ", weight_vector)
 
@@ -106,7 +116,12 @@ def main():
 
     plot_data(s_0, s_1, weight_vector[0], weight_vector[1], weight_vector[2], "Perceptron trained weights on Random Classification Data with 2 classes")
 
-    # TODO Render the decision boundary of the perceptron after training
+    # Section (i)
+    plt.plot(epoch_tracker_for_graph, misclassification_tracker_for_graph, 'k-')
+    plt.title("Misclassifications per Epoch with Eta = " + str(eta))
+    plt.show()
+
+
 
 def train_perceptron(S, s_1, weight_vector,eta):
     misclassifications = 0
