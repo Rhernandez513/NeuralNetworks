@@ -30,8 +30,8 @@ for i in range(n):
 # x_1_n should now be a 100x2 matrix
 
 # determine s_1 and s_0 where
-# s_1 subset of S where x [x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
 # s_0 subset of S where x [x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T < 0
+# s_1 subset of S where x [x_1, x_2] an eleement of S satisfying [1 x_1 x_2][w_0 w_1 w_2]^T >= 0
 
 a = np.array([1, x_1_n[0][0], x_1_n[0][1]])
 b = np.array([w_0, w_1, w_2])
@@ -56,14 +56,22 @@ for i in range(100):
 
 # Plotting
 fig = plt.figure(figsize=(10,8))
-# plt.plot(x_1_n[:, 0][y == 0], X[:, 1][y == 0], 'r^')
-# plt.plot(x_1_n[:, 0][y == 1], X[:, 1][y == 1], 'bs')
 plt.xlabel("feature 1")
 plt.ylabel("feature 2")
 plt.title('Random Classification Data with 2 classes')
 plt.plot(s_0[:, 0], s_0[:, 1], 'r^')
 plt.plot(s_1[:, 0], s_1[:, 1], 'bs')
 plt.show()
+
+
+# Perceptron training algorithm in plain english
+# 1. Initialize weights to random values
+# 2. For each training example (x, d)
+# 3. Compute the output value of the perceptron: y = f(w^T * x)
+# 4. Update the weights: w = w + (d - y) * x
+# 5. Repeat steps 2-4 until all training examples are classified correctly
+
+
 
 # We can use the Perceptron Training Algorithm (PTA) that finds the weight vector for us.  Of course, it is a special case of supervised learning
 #     - Supposing n training samples x1 , … , xn ∈ ℝ1+d are given.  Again assume the first component of these vectors are assumed to be equal to 1 to provide for the bias.
