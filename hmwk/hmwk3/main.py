@@ -38,12 +38,12 @@ class PerceptronNetwork():
         self.layers = [layer_one, layer_two]
 
 
-def step_function(x) -> int:
-    return 1 if x >= 0 else 0
+def step_func(x) -> int:
+    return 1.0 if x >= 0 else 0.0
 
 
-def arr_step_function(x) -> np.ndarray:
-    return np.array([step_function(x_i) for x_i in x])
+def u(x) -> np.ndarray:
+    return np.array([step_func(x_i) for x_i in x])
 
 
 def main():
@@ -85,34 +85,43 @@ def main():
     # section d.3.1
     while epoch < epoch_max:
         for i in range(n):
-            x = images[i]
-            d_i = labels[i]
+            x_i = np.array(images[i])
+            label = labels[i]
+
             # v=Wx aka induced local field
             # we do not add any biases for this case
-            v = np.dot(W, x)
-            prediction = np.argmax(v)
-            if prediction != d_i:
+            v = np.dot(W, x_i)
+            predicted_label = np.argmax(v)
+            if predicted_label != label:
                 errors[epoch] += 1
         epoch += 1
         for i in range(n):
-            x = images[i]
-            d_i = labels[i]
-            v = np.dot(W, x)
-            prediction = np.argmax(v)
-            v = [1 if i == prediction else 0 for i in range(10)]
-            y = arr_step_function(v)
-            W += eta * (d_i - y) * x.T
-            # W = W + eta * (d_i - y) * x.T
-            pass
+            x_i = np.array(images[i])
+            x_i.resize(784, 1)
+
+            label = labels[i]
+            d_i = np.zeros((10,1))
+            d_i[labels[i]] = 1
+
+            # v=W * x_i aka induced local fields
+            v = np.dot(W, x_i)
+
+            y = u(v)
+            y.resize(10, 1)
+
+            # we have to resize both d_i and y to be 10x1
+            # then we can mult by x_i.T to get a 10x784 matrix
+
+            W += eta * (d_i - y) * x_i.T
+
         if (errors[epoch - 1]/n) > episilon:
             # section 3.2
             break
 
-
-
-
-    #     pass
-
+    print("finished training after {epoch} epochs".format(epoch=epoch))
+    print("error rate: {error_rate}".format(error_rate=errors[epoch - 1]/n))
+    print("error count: {error_count}".format(error_count=errors[epoch - 1]))
+    print("W: {W}".format(W=W))
 
     # should render a 2 
     print(mndata.display(images[5]))
