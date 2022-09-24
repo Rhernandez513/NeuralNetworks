@@ -7,21 +7,26 @@ def u(x) -> np.ndarray:
     """Step function applied component wise"""
     return np.array([1.0 if x_i >= 0 else 0.0 for x_i in x])
 
-def run_test(W, n, test_images, test_labels, section_str) -> None:
-    errors = 0
+def run_test(W, n, test_images, test_labels, section_str) -> tuple:
+    error_count = 0
     for i in range(n):
         # calculate the induced local fields v
         x_i = np.array(test_images[i])
         v = np.dot(W, x_i)
         largest_component = np.argmax(v)
         if largest_component != test_labels[i]:
-            errors += 1
-    print("section {} finished".format(section_str))
-    print("run of testing data with n = {}".format(n))
-    print("error rate: {error_rate}".format(error_rate=errors/n))
-    print("error count: {error_count}".format(error_count=errors))
+            error_count += 1
+    error_rate = error_count/n
+    print("Section {}".format(section_str))
+    print("run of TEST data ")
+    print("n: {}".format(n))
+    print("error count: {error_count}".format(error_count=error_count))
+    print("Percent of TEST errors: {error_rate}".format(error_rate=error_rate))
+    print()
+    return (error_rate, error_count)
 
-def run_train(eta, epsilon, n, epoch_max, training_images, training_labels, section_str) -> np.ndarray:
+def run_train(eta, epsilon, n, epoch_max, training_images, training_labels, section_str) -> tuple:
+    print("Training with eta=" + str(eta) + " n=" + str(n) + " epsilon=" + str(epsilon))
     # section d.1
     W = np.random.uniform(-1, 1, size=(10, 784)) # weight matrix
 
@@ -29,7 +34,7 @@ def run_train(eta, epsilon, n, epoch_max, training_images, training_labels, sect
     epoch = 0
 
     # section d.3
-    errors = [0 for i in range(epoch_max)]
+    errors = np.zeros(epoch_max)
 
     # so much easier to just use numpy and matrix multiplication
 
@@ -65,19 +70,24 @@ def run_train(eta, epsilon, n, epoch_max, training_images, training_labels, sect
 
             W += eta * (d_i - y) * x_i.T
 
+        # section 3.2
         if (errors[epoch - 1]/n) > epsilon:
-            # section 3.2
             break
 
-    print(section_str)
-    print("finished training after {epoch} epochs".format(epoch=epoch))
-    print("error rate: {error_rate}".format(error_rate=errors[epoch - 1]/n))
+    print("Section {}".format(section_str))
+    print("finished TRAINING after {epoch} epoch(s)".format(epoch=epoch))
+    print("eta: {eta}".format(eta=eta))
+    print("epsilon: {epsilon}".format(epsilon=epsilon))
+    print("n: {n}".format(n=n))
+    print("epoch_max: {epoch_max}".format(epoch_max=epoch_max))
+    print("Percent errors: {error_rate}".format(error_rate=errors[epoch - 1]/n))
     print("error count: {error_count}".format(error_count=errors[epoch - 1]))
+    print()
 
     # We will avoid polluting the output with the weight matrix
     # print("\nW: {W}\n".format(W=W))
 
-    return W
+    return (W, errors)
 
 def main():
 
@@ -88,31 +98,78 @@ def main():
     # each image is 28x28 pixels
     # labels is a python array of insigned bytes, luckily python translates these to ints no problem
     training_images, training_labels = mndata.load_training()
+    testing_images, testing_labels = mndata.load_testing()
 
 
     # section d.0
     eta = 0.1
-    epsilon = 0.0
+    epsilon = 0.1
     n = 1000
     epoch_max = 100
-    W = run_train(eta, epsilon, n, epoch_max, training_images, training_labels, "Section A through D")
+    (W, errors) = run_train(eta, epsilon, n, epoch_max, training_images, training_labels, "A through D")
 
     # section e.0
     # Given the same W matrix from training
-    testing_images, testing_labels = mndata.load_testing()
     # section e.1 && e.2
     n = 1000
-    run_test(W, n, testing_images, testing_labels, "E")
+    (error_rate, error_count) = run_test(W, n, testing_images, testing_labels, "E")
 
     # section f
-    # n = 50
-    # eta = 1
-    # episilon = 0.0
-    # print("section F, testing data with n = {}".format(n), end=" ")
-    # print("and eta = {}".format(eta), end=" ")
-    # print("and epsilon = {}".format(episilon))
+    n = 50
+    eta = 1
+    epsilon = 0.01
+    (W, errors) = run_train(eta, epsilon, n, epoch_max, training_images, training_labels, "F")
 
+    plt.title("Error Rate vs Epoch, N={}, Eta={}, Epsilon={}".format(n, eta, epsilon))
+    plt.xlabel("Epoch")
+    plt.ylabel("Error Rate")
+    plt.plot(errors, [i for i in range(epoch_max)])
+    plt.show()
 
+    n = 1000
+    (error_rate, error_count) = run_test(W, n, testing_images, testing_labels, "F")
+
+    # section g
+    n = 1000
+    eta = 1
+    epsilon = 0.01
+    (W, errors) = run_train(eta, epsilon, n, epoch_max, training_images, training_labels, "G")
+
+    plt.title("Error Rate vs Epoch, N={}, Eta={}, Epsilon={}".format(n, eta, epsilon))
+    plt.xlabel("Epoch")
+    plt.ylabel("Error Rate")
+    plt.plot(errors, [i for i in range(epoch_max)])
+    plt.show()
+
+    n = 10000
+    (error_rate, error_count) = run_test(W, n, testing_images, testing_labels, "G")
+
+    # section h
+    n = 60000
+    epsilon = 0.0
+    (W, errors) = run_train(eta, epsilon, n, epoch_max, training_images, training_labels, "H")
+
+    plt.title("Error Rate vs Epoch, N={}, Eta={}, Epsilon={}".format(n, eta, epsilon))
+    plt.xlabel("Epoch")
+    plt.ylabel("Error Rate")
+    plt.plot(errors, [i for i in range(epoch_max)])
+    plt.show()
+
+    n = 10000
+    (error_rate, error_count) = run_test(W, n, testing_images, testing_labels, "H")
+
+    # section i
+    epsilon = 0.1
+    eta = 0.1
+    n = 60000
+    (W, errors) = run_train(eta, epsilon, n, epoch_max, training_images, training_labels, "I")
+    plt.title("Error Rate vs Epoch, N={}, Eta={}, Epsilon={}".format(n, eta, epsilon))
+    plt.xlabel("Epoch")
+    plt.ylabel("Error Rate")
+    plt.plot(errors, [i for i in range(epoch_max)])
+    plt.show()
+    n = 10000
+    (error_rate, error_count) = run_test(W, n, testing_images, testing_labels, "I")
 
 if __name__ == '__main__':
     main()
