@@ -86,7 +86,7 @@ def main():
                 errors[epoch] += 1
 
                 # weight update with backpropagation algo
-                W += eta * (d_i - phi(v)) * phi_prime(v) * x_i
+                W += eta * (d_i - y_1) * phi_prime(v) * x_i
                 output_bias = W[0][0] # update output bias too ?
 
             # Mean Square Error
