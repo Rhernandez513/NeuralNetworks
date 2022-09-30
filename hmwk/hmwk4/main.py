@@ -61,7 +61,7 @@ def main():
 
     # Section 4 start on the backpropagation algorithm
     eta = 0.1
-    epsilon = 1.0
+    epsilon = 0.9
 
     # from lecture notes
     # 1. Init weights randomly
@@ -79,20 +79,27 @@ def main():
         for i in range(n):
             x_i = x_1_n[i]
             d_i = d_i_n[i]
-            v = np.add(W_1[0], W_1[1] * x_i) # calc local fields and add the biases, W_1[0] are the biases
+
+            # forward pass
+            v = np.add(W_1[0], W_1[1] * x_i) # local field of first layer, W[0] are biases
             y_1 = phi(v) # output of first layer
             u = (W_2 * y_1) + output_bias # local field of second layer
             y_2 = output_phi(np.sum(u)) # output of second layer
 
-            if not np.isclose(y_2, d_i, atol=0.001):
+            # last layer error
+            l2_error = d_i - y_2
+
+            if abs(l2_error) > epsilon:
                 errors[epoch] += 1
 
                 # weight update with backpropagation algo
-                W_1[0] += eta * (d_i - y_1) # update input biases
-                W_1[1] += eta * (d_i - y_1) * phi_prime(v) * x_i # update input weights
+                output_bias += eta * l2_error # update output bias
+                W_2 += eta * l2_error * output_phi_prime(u) * (-x_i) # update output weights
 
-                W_2 += eta * (d_i - y_2) * output_phi_prime(u) * x_i # update output weights
-                output_bias += eta * (d_i - y_2) # update output bias
+                l1_error = d_i - y_1
+
+                W_1[1] += eta * l1_error * phi_prime(v) * (-x_i) # update input weights
+                W_1[0] += eta * l1_error # update input biases
 
             # Mean Square Error
             new_mse = np.mean((d_i_n - y_2)) ** 2
@@ -102,19 +109,20 @@ def main():
                 eta *= 0.9
             mse = new_mse
 
-        if (errors[epoch - 1]/n) > epsilon or np.isclose(mean_square_errors[epoch][i-1], mean_square_errors[epoch][i], atol=0.01):
+        if (errors[epoch - 1]/n) < epsilon and (errors[epoch-1] == errors[epoch]):
+            # we have reached the desired error
             break
         epoch += 1
 
     print("final mse: {}".format(mse))
     print("Epochs: {}".format(epoch))
-    print("Errors: {}".format(errors))
+    print("Errors: {}".format(errors[:epoch+1]))
     print()
 
     # TODO plot epochs vs mean squared error
-    plt.title('mse vs epoch')
-    plt.scatter([i for i in range(n)], mean_square_errors[0][:n])
-    plt.show()
+    # plt.title('mse vs epoch')
+    # plt.scatter([i for i in range(n)], mean_square_errors[0][:n])
+    # plt.show()
 
 
 if __name__ == '__main__':
