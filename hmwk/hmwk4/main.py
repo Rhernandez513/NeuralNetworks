@@ -41,7 +41,7 @@ def main():
     plt.title('x v d, n=' + str(n))
     plt.scatter(x_1_n, d_i_n)
     # TODO uncomment for report
-    plt.show()
+    # plt.show()
 
     # Notes
     # We will use a neural network with 1 input
@@ -71,7 +71,7 @@ def main():
     # Note here we use biases, so we add b as the first column of W
 
     epoch = 0
-    epoch_max = 10000
+    epoch_max = 100
     errors = np.zeros(epoch_max)
     mse = float('inf')
     mean_square_errors = np.zeros((epoch_max, n))
@@ -112,6 +112,9 @@ def main():
     print()
 
     # TODO plot epochs vs mean squared error
+    plt.title('mse vs epoch')
+    plt.scatter([i for i in range(n)], mean_square_errors[0][:n])
+    plt.show()
 
 
 if __name__ == '__main__':
