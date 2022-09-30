@@ -9,8 +9,8 @@ def get_d_vector(x, v, n) -> np.ndarray:
     )
 
 
-def output_phi(v):
-    return v
+def output_phi(u):
+    return u
 
 
 def phi(v):
@@ -24,7 +24,7 @@ def phi_prime(v):
     return 1 / (np.cosh(v) ** 2)
 
 
-def output_phi_prime(v):
+def output_phi_prime(u):
     """dv of v is 1"""
     return 1
 
@@ -52,14 +52,15 @@ def main():
     # for weights from input to hidden layer we have (N weights + N bias)
     # for the weights from the hidden layer to output layer we have (N weights + 1 bias)
     # thus we have 3N+1 weights
-    W = np.random.uniform(-1, 1, size=(2,24)) # weight matrix
+    W_1 = np.random.uniform(-1, 1, size=(1,24)) # weight matrix for input to hidden layer
+    W_2 = np.random.uniform(-1, 1, size=(1,24)) # weight matrix for hidden to output layer
     input_biases = np.array([1 for i in range(24)])
-    W = np.vstack((input_biases, W)) # we will use W[0] for input biases
+    W_1 = np.vstack((input_biases, W_1)) # we will use W_1[0] for input biases
     output_bias = 1
 
 
     # Section 4 start on the backpropagation algorithm
-    eta = 1.0
+    eta = 0.1
     epsilon = 1.0
 
     # from lecture notes
@@ -70,7 +71,7 @@ def main():
     # Note here we use biases, so we add b as the first column of W
 
     epoch = 0
-    epoch_max = 100
+    epoch_max = 10000
     errors = np.zeros(epoch_max)
     mse = float('inf')
     mean_square_errors = np.zeros((epoch_max, n))
@@ -78,16 +79,20 @@ def main():
         for i in range(n):
             x_i = x_1_n[i]
             d_i = d_i_n[i]
-            v = np.dot(W, x_i) # local fields of first layer
+            v = np.add(W_1[0], W_1[1] * x_i) # calc local fields and add the biases, W_1[0] are the biases
             y_1 = phi(v) # output of first layer
-            y_2 = output_phi(output_bias + np.sum(W[2])) # output of second layer
+            u = (W_2 * y_1) + output_bias # local field of second layer
+            y_2 = output_phi(np.sum(u)) # output of second layer
 
-            if y_2 != d_i:
+            if not np.isclose(y_2, d_i, atol=0.001):
                 errors[epoch] += 1
 
                 # weight update with backpropagation algo
-                W += eta * (d_i - y_1) * phi_prime(v) * x_i
-                output_bias = W[0][0] # update output bias too ?
+                W_1[0] += eta * (d_i - y_1) # update input biases
+                W_1[1] += eta * (d_i - y_1) * phi_prime(v) * x_i # update input weights
+
+                W_2 += eta * (d_i - y_2) * output_phi_prime(u) * x_i # update output weights
+                output_bias += eta * (d_i - y_2) # update output bias
 
             # Mean Square Error
             new_mse = np.mean((d_i_n - y_2)) ** 2
@@ -97,14 +102,13 @@ def main():
                 eta *= 0.9
             mse = new_mse
 
-        if (errors[epoch - 1]/n) > epsilon or abs(mean_square_errors[epoch][i-1] - mean_square_errors[epoch][i]) < 0.0001:
+        if (errors[epoch - 1]/n) > epsilon or np.isclose(mean_square_errors[epoch][i-1], mean_square_errors[epoch][i], atol=0.01):
             break
         epoch += 1
 
     print("final mse: {}".format(mse))
     print("Epochs: {}".format(epoch))
     print("Errors: {}".format(errors))
-    print(W)
     print()
 
     # TODO plot epochs vs mean squared error
