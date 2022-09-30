@@ -41,7 +41,7 @@ def main():
     plt.title('x v d, n=' + str(n))
     plt.scatter(x_1_n, d_i_n)
     # TODO uncomment for report
-    # plt.show()
+    plt.show()
 
     # Notes
     # We will use a neural network with 1 input
@@ -86,7 +86,7 @@ def main():
                 errors[epoch] += 1
 
                 # weight update with backpropagation algo
-                W += W + eta * (d_i - phi(v)) * phi_prime(v) * x_i
+                W += eta * (d_i - phi(v)) * phi_prime(v) * x_i
                 output_bias = W[0][0] # update output bias too ?
 
             # Mean Square Error
