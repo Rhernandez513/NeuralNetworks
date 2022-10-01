@@ -40,8 +40,7 @@ def main():
     d_i_n = get_d_vector(x_1_n, v_1_n, n)
     plt.title('x v d, n=' + str(n))
     plt.scatter(x_1_n, d_i_n)
-    # TODO uncomment for report
-    # plt.show()
+    plt.show()
 
     # Notes
     # We will use a neural network with 1 input
@@ -71,7 +70,7 @@ def main():
     # Note here we use biases, so we add b as the first column of W
 
     epoch = 0
-    epoch_max = 100
+    epoch_max = 1000
     errors = np.zeros(epoch_max)
     mse = float('inf')
     mean_square_errors = np.zeros((epoch_max, n))
@@ -109,20 +108,46 @@ def main():
                 eta *= 0.9
             mse = new_mse
 
-        if (errors[epoch - 1]/n) < epsilon and (errors[epoch-1] == errors[epoch]):
-            # we have reached the desired error
-            break
         epoch += 1
 
+    mean_square_errors = np.resize(mean_square_errors, (epoch, n))
     print("final mse: {}".format(mse))
     print("Epochs: {}".format(epoch))
-    print("Errors: {}".format(errors[:epoch+1]))
-    print()
+    print("Errors: {}".format(errors[:epoch]))
 
-    # TODO plot epochs vs mean squared error
-    # plt.title('mse vs epoch')
-    # plt.scatter([i for i in range(n)], mean_square_errors[0][:n])
-    # plt.show()
+    for i in range(epoch):
+        if i > 0:
+            break
+        plt.title("n vs mse, epoch=" + str(i))
+        plt.xlabel("n")
+        plt.ylabel("mse")
+        plt.plot([i for i in range(n)], mean_square_errors[i])
+        plt.show()
+    
+    plt.title("missed classifications per epoch")
+    plt.xlabel("epoch")
+    plt.ylabel("missed classifications")
+    plt.plot([i for i in range(epoch)], [errors[i] for i in range(epoch)])
+    plt.show()
+    
+    # Section 5
+    W_0 = np.vstack((W_1, W_2))
+    x = np.linspace(0,1,n)
+    vals = np.zeros(n)
+    for i in range(n):
+        # another forward pass now that the network is trained
+        v = np.add(W_0[0], W_0[1] * x[i]) # local field of first layer, W_0[0] are biases
+        y_1 = phi(v) # output of first layer
+        u = (W_0[2] * y_1) + output_bias # local field of second layer
+        y = output_phi(np.sum(u)) # output of second layer
+        vals[i] = y
+
+    plt.title('f(x, w_0), n=' + str(n))
+    plt.xlabel='x'
+    plt.ylabel='f(x, w_0)'
+    plt.scatter(x_1_n, d_i_n)
+    plt.scatter(x, vals)
+    plt.show()
 
 
 if __name__ == '__main__':
