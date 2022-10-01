@@ -73,7 +73,8 @@ def main():
     epoch_max = 1000
     errors = np.zeros(epoch_max)
     mse = float('inf')
-    mean_square_errors = np.zeros((epoch_max, n))
+    mean_square_errors = np.zeros(epoch_max)
+    outputs= np.zeros(n)
     while epoch < epoch_max:
         for i in range(n):
             x_i = x_1_n[i]
@@ -84,6 +85,7 @@ def main():
             y_1 = phi(v) # output of first layer
             u = (W_2 * y_1) + output_bias # local field of second layer
             y_2 = output_phi(np.sum(u)) # output of second layer
+            outputs[i] = y_2
 
             # last layer error
             l2_error = d_i - y_2
@@ -100,13 +102,15 @@ def main():
                 W_1[1] += eta * l1_error * phi_prime(v) * (-x_i) # update input weights
                 W_1[0] += eta * l1_error # update input biases
 
-            # Mean Square Error
-            new_mse = np.mean((d_i_n - y_2)) ** 2
-            mean_square_errors[epoch][i] = new_mse
-            if new_mse > mse:
-                # we are increasing the MSE, so we need to modify eta
-                eta *= 0.9
-            mse = new_mse
+        # TODO this is wrong, we need to calculate the MSE for the entire epoch
+        # TODO Validate this
+        # Mean square error for epoch
+        new_mse = np.mean((d_i_n - outputs)) ** 2
+        mean_square_errors[epoch] = new_mse
+        if new_mse > mse:
+            # we are increasing the MSE, so we need to modify eta
+            eta *= 0.9
+        mse = new_mse
 
         epoch += 1
 
@@ -115,14 +119,16 @@ def main():
     print("Epochs: {}".format(epoch))
     print("Errors: {}".format(errors[:epoch]))
 
-    for i in range(epoch):
-        if i > 0:
-            break
-        plt.title("n vs mse, epoch=" + str(i))
-        plt.xlabel("n")
-        plt.ylabel("mse")
-        plt.plot([i for i in range(n)], mean_square_errors[i])
-        plt.show()
+    # TODO this graph is all wrong
+    # for i in range(epoch):
+    #     if i > 0:
+    #         break
+    #     plt.title("epoch vs mse")
+    #     plt.xlabel("epoch")
+    #     plt.ylabel("mse")
+    #     # plt.plot([i for i in range(n)], mean_square_errors[i])
+    #     plt.plot([i for i in range(epoch_max)], [mean_square_errors[i] for i in range(epoch_max)])
+    #     plt.show()
     
     plt.title("missed classifications per epoch")
     plt.xlabel("epoch")
@@ -142,7 +148,7 @@ def main():
         y = output_phi(np.sum(u)) # output of second layer
         vals[i] = y
 
-    plt.title('f(x, w_0), n=' + str(n))
+    plt.title('f(x, w_0), n=' + str(n) + ' epochs=' + str(epoch_max))
     plt.xlabel='x'
     plt.ylabel='f(x, w_0)'
     plt.scatter(x_1_n, d_i_n)
