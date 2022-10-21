@@ -92,19 +92,29 @@ def read_images_into_tensors(path: str, save: bool, read_image_files: bool) -> t
     else:
         training_tensor = torch.load("training_tensor.file")
         test_tensor = torch.load("test_tensor.file")
-
+    
     return training_tensor, training_labels, test_tensor, testing_labels
 
 
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        # in_channels, out_channels, kernel_size, stride=1,
+        self.conv1 = nn.Conv2d(3, 96, 9, 1)
+        self.conv2 = nn.Conv2d(96, 192, 9, 1)
         self.dropout1 = nn.Dropout(0.25)
         self.dropout2 = nn.Dropout(0.5)
-        self.fc1 = nn.Linear(9216, 128)
-        self.fc2 = nn.Linear(128, 10)
+        # self.fc1 = nn.Linear(27648, 384)
+        # self.fc2 = nn.Linear(384, 10)
+        self.fc1 = nn.Linear(1625088, 100)
+        self.fc2 = nn.Linear(100, 10)
+
+        # self.conv1 = nn.Conv2d(1, 32, 3, 1)
+        # self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        # self.dropout1 = nn.Dropout(0.25)
+        # self.dropout2 = nn.Dropout(0.5)
+        # self.fc1 = nn.Linear(9216, 128)
+        # self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -179,6 +189,8 @@ def main():
     # section 1, read images into tensor files
     path = "geometry_dataset/"
     training_tensor, training_labels, test_tensor, test_labels = read_images_into_tensors(path, save=False, read_image_files=False)
+    training_tensor = training_tensor.float()
+    test_tensor = test_tensor.float()
 
     # section 2, train the model
     # section 3, test the model
@@ -201,6 +213,7 @@ def main():
     dataset1 = torch.utils.data.TensorDataset(training_tensor, training_labels)
     dataset2 = torch.utils.data.TensorDataset(test_tensor, test_labels)
 
+    # train_loader = torch.utils.data.DataLoader(dataset1, batch_size=args.batch_size, shuffle=False)
     train_loader = torch.utils.data.DataLoader(dataset1, batch_size=args.batch_size, shuffle=True)
     test_loader = torch.utils.data.DataLoader(dataset2, batch_size=args.test_batch_size)
 
@@ -213,8 +226,8 @@ def main():
         test(args,model, device, test_loader)
         scheduler.step()
 
-    # if args.save_model:
-        # torch.save(model.state_dict(), "mnist_cnn.pt")
+    if args.save_model:
+        torch.save(model.state_dict(), "shapes_cnn.pt")
 
     print("done")
 
