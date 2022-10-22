@@ -72,16 +72,22 @@ def read_images_into_tensors(path: str, save: bool, read_image_files: bool) -> t
     testing_images = []
     testing_labels = []
 
-    for key, value in training_files_by_class.items():
-        for file_name in value:
-            training_labels.append(key)
-            if read_image_files:
-                training_images.append(read_image(path + file_name))
     for key, value in testing_files_by_class.items():
         for file_name in value:
             testing_labels.append(key)
             if read_image_files:
                 testing_images.append(read_image(path + file_name))
+    for key, value in training_files_by_class.items():
+        for file_name in value:
+            training_labels.append(key)
+            if read_image_files:
+                training_images.append(read_image(path + file_name))
+
+    if not read_image_files:
+        training_tensor = torch.load("training_tensor.file")
+        test_tensor = torch.load("test_tensor.file")
+        return training_tensor, training_labels, test_tensor, testing_labels
+
 
     if read_image_files:
         training_tensor = torch.stack(training_images)
@@ -96,25 +102,27 @@ def read_images_into_tensors(path: str, save: bool, read_image_files: bool) -> t
     return training_tensor, training_labels, test_tensor, testing_labels
 
 
+
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         # in_channels, out_channels, kernel_size, stride=1,
-        self.conv1 = nn.Conv2d(3, 96, 9, 1)
-        self.conv2 = nn.Conv2d(96, 192, 9, 1)
+        self.conv1 = nn.Conv2d(3, 4, 3, 1)
+        self.conv2 = nn.Conv2d(4, 8, 3, 1)
         self.dropout1 = nn.Dropout(0.25)
         self.dropout2 = nn.Dropout(0.5)
-        # self.fc1 = nn.Linear(27648, 384)
-        # self.fc2 = nn.Linear(384, 10)
-        self.fc1 = nn.Linear(1625088, 100)
-        self.fc2 = nn.Linear(100, 10)
+        self.fc1 = nn.Linear(76832, 100)
+        self.fc2 = nn.Linear(100, 9)
+        # self.fc1 = nn.Linear(4802, 128)
+        # self.fc1 = nn.Linear(307328, 128)
 
-        # self.conv1 = nn.Conv2d(1, 32, 3, 1)
+        # self.conv1 = nn.Conv2d(3, 32, 3, 1)
         # self.conv2 = nn.Conv2d(32, 64, 3, 1)
         # self.dropout1 = nn.Dropout(0.25)
         # self.dropout2 = nn.Dropout(0.5)
         # self.fc1 = nn.Linear(9216, 128)
         # self.fc2 = nn.Linear(128, 10)
+
 
     def forward(self, x):
         x = self.conv1(x)
@@ -188,7 +196,7 @@ def main():
 
     # section 1, read images into tensor files
     path = "geometry_dataset/"
-    training_tensor, training_labels, test_tensor, test_labels = read_images_into_tensors(path, save=False, read_image_files=False)
+    training_tensor, training_labels, test_tensor, test_labels = read_images_into_tensors(path, save=True, read_image_files=False)
     training_tensor = training_tensor.float()
     test_tensor = test_tensor.float()
 
@@ -197,28 +205,20 @@ def main():
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    # transform=transforms.Compose([
-    #     transforms.ToTensor(),
-    #     transforms.Normalize((0.1307,), (0.3081,))
-    # ])
-    # dataset1 = datasets.MNIST('./data', train=True, download=True, transform=transform)
-    # dataset2 = datasets.MNIST('./data', train=False, transform=transform)
-
-    # training_labels = torch.tensor(training_labels)
-    # test_labels = torch.tensor(test_labels)
-
     training_labels = torch.tensor([class_map[label] for label in training_labels])
     test_labels = torch.tensor([class_map[label] for label in test_labels])
 
     dataset1 = torch.utils.data.TensorDataset(training_tensor, training_labels)
     dataset2 = torch.utils.data.TensorDataset(test_tensor, test_labels)
 
-    # train_loader = torch.utils.data.DataLoader(dataset1, batch_size=args.batch_size, shuffle=False)
     train_loader = torch.utils.data.DataLoader(dataset1, batch_size=args.batch_size, shuffle=True)
     test_loader = torch.utils.data.DataLoader(dataset2, batch_size=args.test_batch_size)
 
     model = Net().to(device)
+    # model.load_state_dict(torch.load("shapes_cnn.pt"))
+    # model.eval()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    # optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     for epoch in range(1, args.epochs + 1):
@@ -227,6 +227,7 @@ def main():
         scheduler.step()
 
     if args.save_model:
+        # torch.save(model.state_dict(), "modified_model_shapes_Adam_SGD_cnn.pt")
         torch.save(model.state_dict(), "shapes_cnn.pt")
 
     print("done")
