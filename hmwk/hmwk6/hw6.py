@@ -323,16 +323,6 @@ randomly_selected_val_imgs = [random.randint(0,len(val_data)) for i in range(cou
 #     print('\n EPOCH {}/{} \t train loss {:.3f} \t val loss {:.3f}'.format(epoch + 1, num_epochs,train_loss,val_loss))
 #     # plot_ae_outputs_den(encoder,decoder,noise_factor=noise_factor)
 
-# derived from both online examples of MNIST kmeans clustering 
-# combined with github copilot suggestions
-def retrieve_info(cluster_labels, actual_labels):
-    ref_labels = {}
-    for i in range(len(np.unique(kmeans.labels_))):
-        index = np.where(cluster_labels == i, 1, 0)
-        num = np.bincount(actual_labels[index == 1]).argmax()
-        ref_labels[i] = num
-    return ref_labels
-
 # put your image generator here
 def generate_images() -> tuple:
     unsqueezed_images = []
@@ -355,7 +345,46 @@ unsqueezed_images, og_squeezed_images, actual_labels = generate_images()
 
 # put your clustering accuracy calculation here
 
+# derived from both online examples of MNIST kmeans clustering 
+# combined with github copilot suggestions
+def retrieve_info(cluster_labels, actual_labels):
+    ref_labels = {}
+    for i in range(len(np.unique(kmeans.labels_))):
+        index = np.where(cluster_labels == i, 1, 0)
+        num = np.bincount(actual_labels[index == 1]).argmax()
+        ref_labels[i] = num
+    return ref_labels
+
 # we must cluster all 48000 images
+
+def run_kmeans(X_train, y_train, num_clusters):
+
+    total_cluster = num_clusters
+    # total_cluster = len(np.unique(y_train)) # should be 10
+    kmeans = MiniBatchKMeans(n_clusters=total_cluster, random_state=0)
+    kmeans.fit(X_train)
+    # kmeans = kmeans.predict(X_train)
+    kmeans.labels_
+
+
+    # ref_labels = retrieve_info(kmeans.labels_, y_train)
+
+    ref_labels = {}
+    for i in range(len(np.unique(kmeans.labels_))):
+        index = np.where(kmeans.labels_ == i, 1, 0)
+        num = np.bincount(y_train[index == 1]).argmax()
+        ref_labels[i] = num
+
+    number_labels = np.random.rand(len(kmeans.labels_))
+    # github copilot suggestion
+    for i in range(len(kmeans.labels_)):
+        number_labels[i] = ref_labels[kmeans.labels_[i]]
+
+    predicted_labels = number_labels[:count].astype(int)
+    print('Using {} clusters'.format(total_cluster))
+    print('Predicted labels: ', predicted_labels)
+    print('Actual labels: ', actual_labels)
+    print('Accuracy: ', accuracy_score(actual_labels, predicted_labels))
 
 # After spending a day attempting, I was not able to correctly shape and reshape 
 # the mnist data coming from torch to appropriately work with sklean.KMeans.  
@@ -370,22 +399,9 @@ from keras.datasets import mnist as kmnist
  # normalize X to be between 0 and 1
 X_train = X_train.astype('float32') / 255.
 X_train = X_train.reshape((len(X_train), -1))
-total_cluster = len(np.unique(y_train)) # should be 10
-kmeans = MiniBatchKMeans(n_clusters=total_cluster, random_state=0)
-kmeans.fit(X_train)
-# kmeans = kmeans.predict(X_train)
-kmeans.labels_
 
-
-ref_labels = retrieve_info(kmeans.labels_, y_train)
-number_labels = np.random.rand(len(kmeans.labels_))
-# github copilot suggestion
-for i in range(len(kmeans.labels_)):
-    number_labels[i] = ref_labels[kmeans.labels_[i]]
-
-predicted_labels = number_labels[:count].astype(int)
-print('Predicted labels: ', predicted_labels)
-print('Actual labels: ', actual_labels)
-print('Accuracy: ', accuracy_score(actual_labels, predicted_labels))
+num_clusters = [10, 20, 40, 80, 160]
+for i in num_clusters:
+    run_kmeans(X_train, y_train, i)
 
 # EOF 
