@@ -2,26 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
+from torch.autograd import Variable
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # EOS char => #
 
-# define a recurrent neural network 
-def RNN(x, weights, biases):
-	# use the RNN to predict the next letter in the sequence
-
-	# ok so we are going to have to take in the input names, reshape to 1xN and then feed into the RNN
-
-	# we will have to design a simple RNN that takes in a sequence of letters and predicts the next letter in the sequence
-
-	pass
-
-# ok so how are we going to measuire the loss of the RNN? 
-# copilot suggestion => potentially use the pytorch cross entropy loss function
-
 class BasicLSTM(nn.Module):
-	def __init__(self, num_classes, input_size, hidden_size, num_layers, seq_length):
+	def __init__(self, num_classes, input_size, hidden_size, num_layers):
 		# github copilot suggestion
 		super(BasicLSTM, self).__init__()
 		self.num_classes = num_classes
@@ -30,7 +18,6 @@ class BasicLSTM(nn.Module):
 		self.hidden_size = hidden_size
 		# I figure we will need this one, should be 27 for alpahebet plus EOS
 		# self.seq_length = 27
-		self.seq_length = seq_length
 		self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True)
 		# self.fc_1 = nn.Linear(hidden_size, 64)
 		# self.fc_2 = nn.Linear(64, num_classes)
@@ -121,12 +108,61 @@ def main():
 
 	names_vector = np.array([name_to_vector_repr(name) for name in names])
 
-	# x = names_vector
-	# x_train = names[0:0.8*length]
-	# x_test = names[0.8*length:length]
-	# def __init__(self, num_classes, input_size, hidden_size, num_layers, seq_length):
-	ltsm = BasicLSTM(27, 27, 27, 11, 11)	
+	x = names_vector
+	length = len(x)
+	x_train = x[0:int(0.8*length)]
+	x_validate = x[int(0.8*length):length]
+	X_train_tensor = [torch.from_numpy(x) for x in x_train]
+	X_validate_tensor = [torch.from_numpy(x) for x in x_validate]
 
+	# github copilot suggested this for numpy to torch conversion
+	# X_train_tensor = torch.from_numpy(x_train).float()
+
+	# this didn't work
+	# 
+	# X_train_tensor = []
+	# for idx, val in enumerate(x_train):
+	# 	X_train_tensor.append(torch.from_numpy(val).float())
+	# # X_train_tensor = torch.tensor(X_train_tensor)
+	# X_train_tensor = Variable(torch.tensor(x_train))
+
+	# X_validate_tensor = torch.from_numpy(x_validate).float()
+
+
+	# do we need to convert to float?
+	# X_train_tensor = Variable(torch.tensor(x_train).float())
+
+	# X_train_tensor = Variable(torch.tensor(x_train))
+	# X_validate_tensor = Variable(torch.tensor(x_validate))
+
+	num_epochs = 10
+	eta = 0.01 # learning rate
+	input_size = 27 # 27 letters in the alphabet + # for end of string
+	num_classes = 27 # 27 letters in the alphabet + # for end of string
+	hidden_size = 27 # number of hidden units in the LSTM cell
+	num_layers = 1 # stacked LSTM layers
+	# seq_length = 11 # number of steps to unroll the LSTM for
+
+	ltsm = BasicLSTM(num_classes, input_size, hidden_size, num_layers)	
+
+	criterion = nn.CrossEntropyLoss()
+	# criterion = nn.MSELoss()
+	optimizer = torch.optim.Adam(ltsm.parameters(), lr=eta)
+
+	# train the model
+	for epoch in range(num_epochs):
+		outputs = ltsm.forward(X_train_tensor) # forward pass
+		optimizer.zero_grad() # clear gradients
+
+		# obtain the loss function
+		loss = criterion(outputs, X_train_tensor)
+		# this should be labels right, but we don't have labels hmmm....
+		# loss = criterion(outputs, Y_train_tensor)
+
+		loss.backward() # backward pass
+
+		optimizer.step() # update the parameters
+		print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
 
 
 main()
