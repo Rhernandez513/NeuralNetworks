@@ -109,7 +109,7 @@ def main():
 
 	names = get_names_from_file()
 
-	names_vector = np.array([name_to_vector_repr(name) for name in names])
+	names_vector = [name_to_vector_repr(name) for name in names]
 
 	x = names_vector
 	length = len(x)
@@ -127,7 +127,7 @@ def main():
 	X_train_tensor = torch.reshape(X_train_tensor, (X_train_tensor.shape[0], 1, X_train_tensor.shape[1]))
 	X_validate_tensor = torch.reshape(X_validate_tensor, (X_validate_tensor.shape[0], 1, X_validate_tensor.shape[1]))
 
-	num_epochs = 10
+	num_epochs = 100
 	eta = 0.01 # learning rate
 	input_size = 27 # 27 letters in the alphabet + # for end of string
 	num_classes = 27 # 27 letters in the alphabet + # for end of string
@@ -146,8 +146,10 @@ def main():
 		outputs = ltsm.fwd(X_train_tensor) # forward pass
 		optimizer.zero_grad() # clear gradients
 
-		# was [17602, 1, 27]
+		# is [17602, 1, 27]
 		X_train_tensor = X_train_tensor.reshape([X_train_tensor.shape[0], X_train_tensor.shape[2]])
+		# now should be [17602, 27]
+
 		# obtain the loss function
 		loss = criterion(outputs, X_train_tensor)
 		# this should be labels right, but we don't have labels hmmm....
@@ -157,6 +159,11 @@ def main():
 
 		optimizer.step() # update the parameters
 		print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
+
+		# is [17602, 27]
+		X_train_tensor = X_train_tensor.reshape([X_train_tensor.shape[0], 1, X_train_tensor.shape[1]])
+		# now should be [17602, 1, 27]
+	
 
 
 main()
