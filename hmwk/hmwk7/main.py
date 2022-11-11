@@ -22,13 +22,15 @@ class BasicLSTM(nn.Module):
 		# self.fc_1 = nn.Linear(hidden_size, 64)
 		# self.fc_2 = nn.Linear(64, num_classes)
 		# starting with a smaller number of nodes to keep training time down
-		self.fc_1 = nn.Linear(hidden_size, 16)
-		self.fc_2 = nn.Linear(16, num_classes)
+		self.fc_1 = nn.Linear(hidden_size, 32)
+		self.fc_2 = nn.Linear(32, num_classes)
 
 		# this one wasn't suggested by copilot, not needed? a ReLu can't hurt though..
 		self.relu = nn.ReLU()
 
 	def fwd(self, x):
+		# h0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size))
+		# c0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size))
 		# github copilot suggestion
 		# Set initial states
 		h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
@@ -38,6 +40,7 @@ class BasicLSTM(nn.Module):
 		# out, _ = self.lstm(x, (h0, c0)) #lstm 
 		# do we not need cn? 
 		out, (hn, cn) = self.lstm(x, (h0, c0)) #lstm 
+		hn = hn.view(-1, self.hidden_size) # Reshape output to (batch_size*sequence_length, hidden_size)
 		out = self.relu(hn)
 		out = self.fc_1(out)
 		out = self.relu(out)
@@ -112,28 +115,17 @@ def main():
 	length = len(x)
 	x_train = x[0:int(0.8*length)]
 	x_validate = x[int(0.8*length):length]
-	X_train_tensor = [torch.from_numpy(x) for x in x_train]
-	X_validate_tensor = [torch.from_numpy(x) for x in x_validate]
+	X_train_tensor = [torch.from_numpy(x).float() for x in x_train]
+	X_validate_tensor = [torch.from_numpy(x).float() for x in x_validate]
 
-	# github copilot suggested this for numpy to torch conversion
-	# X_train_tensor = torch.from_numpy(x_train).float()
+	X_train_tensor = torch.vstack(X_train_tensor)
+	X_validate_tensor = torch.vstack(X_validate_tensor)
 
-	# this didn't work
-	# 
-	# X_train_tensor = []
-	# for idx, val in enumerate(x_train):
-	# 	X_train_tensor.append(torch.from_numpy(val).float())
-	# # X_train_tensor = torch.tensor(X_train_tensor)
-	# X_train_tensor = Variable(torch.tensor(x_train))
+	# X_train_tensor = torch.reshape(X_train_tensor, (X_train_tensor.shape[0], 1, X_train_tensor.shape[1], X_train_tensor.shape[2]))
+	# X_validate_tensor = torch.reshape(X_validate_tensor, (X_validate_tensor.shape[0], 1, X_validate_tensor.shape[1], X_validate_tensor.shape[2]))
 
-	# X_validate_tensor = torch.from_numpy(x_validate).float()
-
-
-	# do we need to convert to float?
-	# X_train_tensor = Variable(torch.tensor(x_train).float())
-
-	# X_train_tensor = Variable(torch.tensor(x_train))
-	# X_validate_tensor = Variable(torch.tensor(x_validate))
+	X_train_tensor = torch.reshape(X_train_tensor, (X_train_tensor.shape[0], 1, X_train_tensor.shape[1]))
+	X_validate_tensor = torch.reshape(X_validate_tensor, (X_validate_tensor.shape[0], 1, X_validate_tensor.shape[1]))
 
 	num_epochs = 10
 	eta = 0.01 # learning rate
@@ -151,9 +143,11 @@ def main():
 
 	# train the model
 	for epoch in range(num_epochs):
-		outputs = ltsm.forward(X_train_tensor) # forward pass
+		outputs = ltsm.fwd(X_train_tensor) # forward pass
 		optimizer.zero_grad() # clear gradients
 
+		# was [17602, 1, 27]
+		X_train_tensor = X_train_tensor.reshape([X_train_tensor.shape[0], X_train_tensor.shape[2]])
 		# obtain the loss function
 		loss = criterion(outputs, X_train_tensor)
 		# this should be labels right, but we don't have labels hmmm....
