@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -141,6 +140,8 @@ def main():
 	# criterion = nn.MSELoss()
 	optimizer = torch.optim.Adam(ltsm.parameters(), lr=eta)
 
+	epochs_v_loss = []
+
 	# train the model
 	for epoch in range(num_epochs):
 		outputs = ltsm.fwd(X_train_tensor) # forward pass
@@ -158,12 +159,23 @@ def main():
 		loss.backward() # backward pass
 
 		optimizer.step() # update the parameters
+		epochs_v_loss.append((epoch, loss.item()))
 		print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
 
 		# is [17602, 27]
 		X_train_tensor = X_train_tensor.reshape([X_train_tensor.shape[0], 1, X_train_tensor.shape[1]])
 		# now should be [17602, 1, 27]
 	
+
+	# now start the plotting
+	epochs = [x[0] for x in epochs_v_loss]
+	loss = [x[1] for x in epochs_v_loss]
+
+	plt.plot(epochs, loss)
+	plt.xlabel('Epochs')
+	plt.ylabel('Loss')
+	plt.title('Epochs vs Loss')
+	plt.show()
 
 
 main()
