@@ -102,7 +102,6 @@ def name_to_vector_repr(name: str) -> np.array:
 	return np.array(vector_repr)
 
 def main():
-	# vector representation of the letter a
 
 	names = get_names_from_file()
 
@@ -130,7 +129,6 @@ def main():
 	num_classes = 27 # 27 letters in the alphabet + # for end of string
 	hidden_size = 27 # number of hidden units in the LSTM cell
 	num_layers = 1 # stacked LSTM layers
-	# seq_length = 11 # number of steps to unroll the LSTM for
 
 	ltsm = BasicLSTM(num_classes, input_size, hidden_size, num_layers)	
 
@@ -158,7 +156,9 @@ def main():
 
 		optimizer.step() # update the parameters
 		epochs_v_loss.append((epoch, loss.item()))
-		print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
+		if epoch % 10 == 0:
+			print(f'epoch: {epoch}, loss = {loss.item():.5f}')
+		# print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
 
 		# is [17602, 27]
 		X_train_tensor = X_train_tensor.reshape([X_train_tensor.shape[0], 1, X_train_tensor.shape[1]])
@@ -178,25 +178,38 @@ def main():
 	# now we want to validate the model
 	# we want to see if the model can predict the next letter in the sequence
 
+	# attemping to predict the next letter in the sequence
+	# a = torch.tensor(alphas['a'])
+	# a.reshape([1,27])
+	# res = ltsm.fwd(a)
+
 	validate_predict = ltsm.fwd(X_validate_tensor) # forward pass
 	data_predict = validate_predict.data.numpy() # convert to numpy array
 
-	_X = X_validate_tensor.data.numpy()
-	_X = _X.reshape([_X.shape[0], _X.shape[2]])
-	plt.plot(_X, label='original')
-	plt.plot(data_predict, label='predict')
-	validate_set_size = len(X_validate_tensor)
-	plt.axvline(x=validate_set_size, c='r', linestyle='--') #size of the training set
-	# plt.title('original vs predict')
-	plt.title('Timeseries Prediction')
-	plt.show()
+	# _X = X_validate_tensor.data.numpy()
+	# _X = _X.reshape([_X.shape[0], _X.shape[2]])
+	# plt.plot(_X, label='original')
+	# plt.plot(data_predict, label='predict')
+	# validate_set_size = len(X_validate_tensor)
+	# plt.axvline(x=validate_set_size, c='r', linestyle='--') #size of the training set
+	# # plt.title('original vs predict')
+	# plt.title('Timeseries Prediction')
+	# plt.show()
 
-	# TODO data predictions must be converted back to letters
-	# first by identifying the max value in the array
-	# then by finding the key in the alphas dictionary that has that value
+	torch.save(ltsm.state_dict(), 'ltsm_model.pt')
 
-
-
+	predicted_words = []
+	_tmp_word = []
+	for i in range(len(data_predict)):
+		max = np.argmax(data_predict[i])
+		_tmp_word.append(list(alphas)[max])
+		if list(alphas)[max] == '#':
+			predicted_words.append(_tmp_word)
+			_tmp_word = []
+			
+	predicted_words = [''.join(x) for x in predicted_words if x != ['#']]
+	print("Predicted words: ")
+	print(predicted_words)
 
 main()
 
