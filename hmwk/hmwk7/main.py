@@ -175,6 +175,28 @@ def main():
 	plt.title('Epochs vs Loss')
 	plt.show()
 
+	# now we want to validate the model
+	# we want to see if the model can predict the next letter in the sequence
+
+	validate_predict = ltsm.fwd(X_validate_tensor) # forward pass
+	data_predict = validate_predict.data.numpy() # convert to numpy array
+
+	_X = X_validate_tensor.data.numpy()
+	_X = _X.reshape([_X.shape[0], _X.shape[2]])
+	plt.plot(_X, label='original')
+	plt.plot(data_predict, label='predict')
+	validate_set_size = len(X_validate_tensor)
+	plt.axvline(x=validate_set_size, c='r', linestyle='--') #size of the training set
+	# plt.title('original vs predict')
+	plt.title('Timeseries Prediction')
+	plt.show()
+
+	# TODO data predictions must be converted back to letters
+	# first by identifying the max value in the array
+	# then by finding the key in the alphas dictionary that has that value
+
+
+
 
 main()
 
