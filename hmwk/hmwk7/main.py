@@ -46,8 +46,6 @@ class BasicLSTM(nn.Module):
 		out = self.fc_2(out)
 		return out
 
-	pass 
-
 
 def get_names_from_file():
 	with open("names.txt") as f:
