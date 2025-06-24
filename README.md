@@ -1,9 +1,5 @@
-Code and course documents for CS559 Neural Networks 
+# CS559 Neural Networks 
 
-University of Illinois at Chicago
-College of Engineering
-Department of Computer Science
+With Professor Erdem Koyuncu <https://scholar.google.com/citations?user=VxwcmkwAAAAJ&hl=en>
 
-Fall 2022
-
-Professor Erdem Koyuncu
+_Mathematical neuron models, learning methods, the perceptron, basic nonlinear optimization, backpropagation algorithm, associative memory, hopfield networks, SVM, vector quantization, SOM, PCA, convolutional networks, deep learning_
